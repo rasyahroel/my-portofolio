@@ -15,6 +15,7 @@ import {
   X,
   Download,
   Users,
+  ArrowUp,
 } from "lucide-react";
 import { LANGS, PROFILE, SKILLS, CONTENT, type Lang } from "../content/portfolio";
 
@@ -31,6 +32,7 @@ export default function Portfolio() {
   const [lang, setLang] = useState<Lang>("en");
   const [activeSection, setActiveSection] = useState<Section>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
   const t = CONTENT[lang];
   const [typedLines, setTypedLines] = useState<string[]>(t.terminal.map(() => ""));
 
@@ -96,6 +98,14 @@ export default function Portfolio() {
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, [lang]);
+
+  // Show the scroll-to-top button once the user has scrolled past the hero
+  useEffect(() => {
+    const onScroll = () => setShowScrollTop(window.scrollY > 600);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    onScroll();
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   // Active-section tracking as user scrolls
   useEffect(() => {
@@ -621,6 +631,16 @@ export default function Portfolio() {
           </p>
         </div>
       </footer>
+
+      {/* Scroll to top */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        aria-label="Scroll to top"
+        className={`fixed bottom-6 right-6 z-40 p-3 rounded-full border border-[var(--border)] bg-[var(--panel)]/90 backdrop-blur-sm text-[var(--gold)] shadow-lg transition-all duration-300 hover:border-[var(--gold)]/50 hover:-translate-y-0.5 ${showScrollTop ? "opacity-100 translate-y-0 pointer-events-auto" : "opacity-0 translate-y-3 pointer-events-none"
+          }`}
+      >
+        <ArrowUp size={18} />
+      </button>
     </div>
   );
 }
