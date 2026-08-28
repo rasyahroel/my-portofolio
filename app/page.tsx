@@ -16,10 +16,14 @@ import {
   Download,
   Users,
   ArrowUp,
+  Sun,
+  Moon,
+  Monitor,
 } from "lucide-react";
 import { LANGS, PROFILE, SKILLS, CONTENT, type Lang } from "../content/portfolio";
 
 type Section = "home" | "about" | "experience" | "projects" | "contact";
+type ThemePref = "light" | "dark" | "system";
 const NAV_KEYS: Section[] = ["home", "about", "experience", "projects", "contact"];
 const skills = SKILLS;
 // WhatsApp deep link — auto-converts a local "08..." number to international
@@ -30,6 +34,7 @@ const WA_LINK = `https://wa.me/${PROFILE.phone.replace(/^0/, "62")}`;
 
 export default function Portfolio() {
   const [lang, setLang] = useState<Lang>("en");
+  const [themePref, setThemePref] = useState<ThemePref>("system");
   const [activeSection, setActiveSection] = useState<Section>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -47,6 +52,33 @@ export default function Portfolio() {
     document.documentElement.lang = lang;
     window.localStorage.setItem("portfolio-lang", lang);
   }, [lang]);
+
+  // Read the saved theme preference on mount (the actual <html data-theme>
+  // was already set synchronously by the inline script in layout.tsx, this
+  // just syncs the toggle UI's state to match it).
+  useEffect(() => {
+    const stored = window.localStorage.getItem("theme-pref") as ThemePref | null;
+    if (stored === "light" || stored === "dark" || stored === "system") {
+      setThemePref(stored);
+    }
+  }, []);
+
+  // Apply the resolved theme to <html data-theme> whenever the preference
+  // changes, and keep it in sync live if the OS theme changes while
+  // "system" is selected.
+  useEffect(() => {
+    const mql = window.matchMedia("(prefers-color-scheme: light)");
+    const apply = () => {
+      const resolved = themePref === "system" ? (mql.matches ? "light" : "dark") : themePref;
+      document.documentElement.dataset.theme = resolved;
+    };
+    apply();
+    window.localStorage.setItem("theme-pref", themePref);
+    if (themePref === "system") {
+      mql.addEventListener("change", apply);
+      return () => mql.removeEventListener("change", apply);
+    }
+  }, [themePref]);
 
   // Typing effect for the terminal hero panel — replays whenever language changes
   useEffect(() => {
@@ -146,6 +178,31 @@ export default function Portfolio() {
     </div>
   );
 
+  const THEME_OPTIONS: { pref: ThemePref; icon: typeof Sun; label: string }[] = [
+    { pref: "light", icon: Sun, label: "Light mode" },
+    { pref: "dark", icon: Moon, label: "Dark mode" },
+    { pref: "system", icon: Monitor, label: "Match system" },
+  ];
+
+  const ThemeToggle = ({ className = "" }: { className?: string }) => (
+    <div className={`flex items-center gap-1 ${className}`}>
+      {THEME_OPTIONS.map(({ pref, icon: Icon, label }) => (
+        <button
+          key={pref}
+          onClick={() => setThemePref(pref)}
+          aria-label={label}
+          title={label}
+          className={`p-1.5 rounded-md transition-all duration-200 ${themePref === pref
+              ? "bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/40"
+              : "text-[var(--muted)] border border-transparent hover:text-[var(--text)]"
+            }`}
+        >
+          <Icon size={14} />
+        </button>
+      ))}
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-[var(--ink)] text-[var(--text)] relative overflow-x-hidden">
       {/* Ambient background blobs */}
@@ -218,10 +275,12 @@ export default function Portfolio() {
                 {t.available}
               </span>
               <LangSwitcher className="pl-2 border-l border-[var(--border)]" />
+              <ThemeToggle className="pl-2 border-l border-[var(--border)]" />
             </div>
 
             {/* Mobile Menu Button */}
             <div className="flex items-center gap-3 md:hidden">
+              <ThemeToggle />
               <LangSwitcher />
               <button className="text-[var(--text)]" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                 {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}

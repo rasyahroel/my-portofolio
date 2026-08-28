@@ -11,6 +11,21 @@
   --muted: #8b93a7;
 }
 
+/* Light mode palette — darker gold/teal shades are used here specifically
+   because the dark-mode shades are too light to pass text contrast on a
+   white background. Everything else (layout, spacing, components) reads
+   from these same variable names, so no component code needs to change. */
+[data-theme="light"] {
+  --ink: #f6f7fa;
+  --panel: #ffffff;
+  --panel-2: #eef0f4;
+  --border: #dde1e8;
+  --gold: #9a6b0c;
+  --teal: #0f8f7c;
+  --text: #12151c;
+  --muted: #5b6472;
+}
+
 html {
   scroll-behavior: smooth;
 }
@@ -18,6 +33,7 @@ html {
 body {
   background: var(--ink);
   color: var(--text);
+  transition: background-color 0.25s ease, color 0.25s ease;
 }
 
 .font-ui-mono {

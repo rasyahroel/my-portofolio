@@ -47,13 +47,32 @@ export const metadata: Metadata = {
   },
 }
 
+// Runs before React hydrates, synchronously, so the correct theme is set
+// before the first paint (no light-flash on a dark-mode visit, or vice
+// versa). Reads the saved preference; if it's "system" or nothing has been
+// saved yet, it falls back to the OS-level color scheme.
+const THEME_INIT_SCRIPT = `
+(function () {
+  try {
+    var pref = localStorage.getItem('theme-pref') || 'system';
+    var resolved = pref === 'system'
+      ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
+      : pref;
+    document.documentElement.dataset.theme = resolved;
+  } catch (e) {}
+})();
+`
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body>
         {children}
         <Analytics />
