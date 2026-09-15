@@ -53,6 +53,7 @@ export const SKILLS: Record<string, string[]> = {
     databases: ["MySQL", "PostgreSQL"],
     "core-banking": ["Axway", "Temenos T24"],
     tools: ["Git", "REST API", "AJAX", "Redux", "jQuery", "Microsoft Office"],
+
     "soft-skills": [
         "Leadership",
         "Teamwork",
@@ -64,6 +65,36 @@ export const SKILLS: Record<string, string[]> = {
         "Initiative",
     ],
 };
+// -----------------------------------------------------------------------------
+// PROJECT_IMAGES — screenshots shown in the auto-playing carousel on each
+// project card. Keyed by each project's "slug" field (same slug across all
+// 3 languages), so the images stay in sync no matter which language a
+// visitor is viewing. Put at least 3 images per project, in whatever order
+// you want them to cycle. Paths are relative to /public.
+// -----------------------------------------------------------------------------
+export const PROJECT_IMAGES: Record<string, string[]> = {
+    "core-banking-integration": [
+        "/projects/core-banking-integration/1.jpg",
+        "/projects/core-banking-integration/2.jpg",
+        "/projects/core-banking-integration/3.jpg",
+    ],
+    "internal-banking-application": [
+        "/projects/internal-banking-application/1.jpg",
+        "/projects/internal-banking-application/2.jpg",
+        "/projects/internal-banking-application/3.jpg",
+    ],
+    "hotel-management-system": [
+        "/projects/hotel-management-system/1.jpg",
+        "/projects/hotel-management-system/2.jpg",
+        "/projects/hotel-management-system/3.jpg",
+    ],
+    "web-clustering-sma": [
+        "/projects/web-clustering-sma/1.jpg",
+        "/projects/web-clustering-sma/2.jpg",
+        "/projects/web-clustering-sma/3.jpg",
+    ],
+};
+
 
 // -----------------------------------------------------------------------------
 // TYPES — describes the shape every language's content must follow.
@@ -77,10 +108,10 @@ export interface ExperienceItem {
 }
 
 export interface ProjectItem {
+    slug: string; // stable id shared across all 3 languages — used to look up PROJECT_IMAGES below. Do not translate.
     title: string; // translate if you like (or keep as project code-name)
     tech: string[]; // usually kept identical across languages (tech names)
     description: string;
-    link: string; // URL, or "#" if none yet
 }
 
 export interface OrganizationItem {
@@ -144,7 +175,6 @@ export interface LangContent {
     };
 
     footer: string; // short "built with ..." line
-    viewProject: string; // label on the project card link, e.g. "view_project()"
 }
 
 // =============================================================================
@@ -157,7 +187,7 @@ export const CONTENT: Record<Lang, LangContent> = {
     // ---------------------------------------------------------------------------
     id: {
         nav: { home: "beranda", about: "tentang", experience: "pengalaman", projects: "proyek", contact: "kontak" },
-        available: "tersedia",
+        available: "Terbuka untuk Kerja",
         downloadCv: "Download CV",
         terminal: [
             { prompt: "$ whoami", output: "Ramanda Syahputra — IT Developer / Fullstack Developer" },
@@ -289,28 +319,28 @@ export const CONTENT: Record<Lang, LangContent> = {
             title: "Proyek",
             items: [
                 {
+                    slug: "core-banking-integration",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "Integrasi sistem core banking menggunakan Axway untuk mendukung operasional perbankan",
-                    link: "#",
                 },
                 {
+                    slug: "internal-banking-application",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "Aplikasi web internal untuk pengelolaan data dan proses bisnis perbankan",
-                    link: "#",
                 },
                 {
+                    slug: "hotel-management-system",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "Sistem manajemen hotel lengkap dengan booking dan inventory management",
-                    link: "#",
                 },
                 {
+                    slug: "web-clustering-sma",
                     title: "Web Clustering Siswa SMA",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "Tugas akhir: Web clustering untuk mengelompokkan siswa SMA di Kota Padang",
-                    link: "#",
                 },
             ],
         },
@@ -322,7 +352,6 @@ export const CONTENT: Record<Lang, LangContent> = {
             phoneLabel: "WhatsApp",
         },
         footer: "Dibuat dengan React & Tailwind CSS.",
-        viewProject: "view_project()",
     },
 
     // ---------------------------------------------------------------------------
@@ -331,7 +360,7 @@ export const CONTENT: Record<Lang, LangContent> = {
     // ---------------------------------------------------------------------------
     en: {
         nav: { home: "home", about: "about", experience: "experience", projects: "projects", contact: "contact" },
-        available: "available",
+        available: "Open to Work",
         downloadCv: "Download CV",
         terminal: [
             { prompt: "$ whoami", output: "Ramanda Syahputra — IT Developer / Fullstack Developer" },
@@ -466,28 +495,28 @@ export const CONTENT: Record<Lang, LangContent> = {
             title: "Projects",
             items: [
                 {
+                    slug: "core-banking-integration",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "Core banking system integration using Axway to support banking operations",
-                    link: "#",
                 },
                 {
+                    slug: "internal-banking-application",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "Internal web application for managing banking data and business processes",
-                    link: "#",
                 },
                 {
+                    slug: "hotel-management-system",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "Complete hotel management system with booking and inventory management",
-                    link: "#",
                 },
                 {
+                    slug: "web-clustering-sma",
                     title: "High School Student Web Clustering",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "Final project: web clustering to group high school students in Padang City",
-                    link: "#",
                 },
             ],
         },
@@ -499,7 +528,6 @@ export const CONTENT: Record<Lang, LangContent> = {
             phoneLabel: "WhatsApp",
         },
         footer: "Built with React & Tailwind CSS.",
-        viewProject: "view_project()",
     },
 
     // ---------------------------------------------------------------------------
@@ -508,7 +536,7 @@ export const CONTENT: Record<Lang, LangContent> = {
     // ---------------------------------------------------------------------------
     zh: {
         nav: { home: "首页", about: "关于", experience: "经历", projects: "项目", contact: "联系" },
-        available: "可接洽",
+        available: "求职中",
         downloadCv: "下载简历",
         terminal: [
             { prompt: "$ whoami", output: "Ramanda Syahputra — IT 开发工程师 / 全栈开发工程师" },
@@ -637,28 +665,28 @@ export const CONTENT: Record<Lang, LangContent> = {
             title: "项目",
             items: [
                 {
+                    slug: "core-banking-integration",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "使用 Axway 集成核心银行系统,支持银行业务运营",
-                    link: "#",
                 },
                 {
+                    slug: "internal-banking-application",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "用于管理银行数据与业务流程的内部 Web 应用",
-                    link: "#",
                 },
                 {
+                    slug: "hotel-management-system",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "包含预订与库存管理功能的完整酒店管理系统",
-                    link: "#",
                 },
                 {
+                    slug: "web-clustering-sma",
                     title: "高中生网页聚类系统",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "毕业设计:用于对巴东市高中生进行分组的网页聚类系统",
-                    link: "#",
                 },
             ],
         },
@@ -670,6 +698,5 @@ export const CONTENT: Record<Lang, LangContent> = {
             phoneLabel: "WhatsApp",
         },
         footer: "使用 React 与 Tailwind CSS 构建。",
-        viewProject: "view_project()",
     },
 };

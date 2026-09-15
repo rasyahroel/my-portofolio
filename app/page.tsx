@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Github,
   Linkedin,
@@ -10,7 +10,8 @@ import {
   Briefcase,
   GraduationCap,
   Code,
-  ExternalLink,
+  ChevronLeft,
+  ChevronRight,
   Menu,
   X,
   Download,
@@ -20,7 +21,7 @@ import {
   Moon,
   Monitor,
 } from "lucide-react";
-import { LANGS, PROFILE, SKILLS, CONTENT, type Lang } from "../content/portfolio";
+import { LANGS, PROFILE, SKILLS, CONTENT, PROJECT_IMAGES, type Lang } from "../content/portfolio";
 
 type Section = "home" | "about" | "experience" | "projects" | "contact";
 type ThemePref = "light" | "dark" | "system";
@@ -31,6 +32,215 @@ const skills = SKILLS;
 // this stays in sync automatically, no need to touch it separately.
 const WA_LINK = `https://wa.me/${PROFILE.phone.replace(/^0/, "62")}`;
 
+type LightboxState = { images: string[]; index: number; alt: string };
+
+// Auto-advancing screenshot carousel shown at the top of each project card.
+// Defined as its own top-level component (not inline inside Portfolio) so
+// its interval timer survives re-renders of the parent instead of being
+// torn down and restarted every time.
+function ProjectCarousel({
+  images,
+  alt,
+  onOpen,
+}: {
+  images: string[];
+  alt: string;
+  onOpen: (index: number) => void;
+}) {
+  const [index, setIndex] = useState(0);
+  const [hovered, setHovered] = useState(false);
+  const [manuallyPaused, setManuallyPaused] = useState(false);
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const paused = hovered || manuallyPaused;
+
+  useEffect(() => {
+    if (images.length <= 1 || paused) return;
+    const id = setInterval(() => setIndex((i) => (i + 1) % images.length), 3000);
+    return () => clearInterval(id);
+  }, [images.length, paused]);
+
+  // Clear any pending resume timer on unmount, so it never fires after the
+  // card is gone.
+  useEffect(() => {
+    return () => {
+      if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    };
+  }, []);
+
+  if (images.length === 0) return null;
+
+  // Manually navigating (via the arrow buttons) pauses auto-play for a
+  // few seconds afterwards, instead of resuming immediately — so the
+  // screenshot someone just chose to look at doesn't change under them.
+  const pauseThenResume = () => {
+    setManuallyPaused(true);
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    resumeTimeoutRef.current = setTimeout(() => setManuallyPaused(false), 5000);
+  };
+
+  const goPrev = () => {
+    setIndex((i) => (i - 1 + images.length) % images.length);
+    pauseThenResume();
+  };
+  const goNext = () => {
+    setIndex((i) => (i + 1) % images.length);
+    pauseThenResume();
+  };
+
+  return (
+    <div
+      className="group relative w-full aspect-video overflow-hidden border-b border-[var(--border)] bg-[var(--panel-2)]"
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <button
+        type="button"
+        onClick={() => onOpen(index)}
+        aria-label={`Open ${alt} screenshots`}
+        className="absolute inset-0 h-full w-full"
+      >
+        {images.map((src, i) => (
+          <img
+            key={src}
+            src={src}
+            alt={`${alt} screenshot ${i + 1} of ${images.length}`}
+            className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ease-in-out ${i === index ? "opacity-100" : "opacity-0"
+              }`}
+          />
+        ))}
+        <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/10" />
+      </button>
+
+      {images.length > 1 && (
+        <>
+          {/* Manual prev/next — always tappable (not hover-only), so it
+              works on touch devices with no hover state too. */}
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              goPrev();
+            }}
+            aria-label="Previous screenshot"
+            className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-70 transition-opacity duration-200 hover:bg-black/60 hover:opacity-100"
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              goNext();
+            }}
+            aria-label="Next screenshot"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-1.5 text-white opacity-70 transition-opacity duration-200 hover:bg-black/60 hover:opacity-100"
+          >
+            <ChevronRight size={18} />
+          </button>
+
+          <div className="pointer-events-none absolute bottom-2.5 left-1/2 flex -translate-x-1/2 gap-1.5">
+            {images.map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 w-1.5 rounded-full transition-colors ${i === index ? "bg-[var(--gold)]" : "bg-white/40"
+                  }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// Full-screen viewer opened when a project's carousel is clicked. Lets the
+// visitor page through every screenshot for that project manually.
+function Lightbox({
+  state,
+  onClose,
+  onNavigate,
+}: {
+  state: LightboxState;
+  onClose: () => void;
+  onNavigate: (index: number) => void;
+}) {
+  const { images, index, alt } = state;
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+      if (e.key === "ArrowRight") onNavigate((index + 1) % images.length);
+      if (e.key === "ArrowLeft") onNavigate((index - 1 + images.length) % images.length);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [index, images.length, onClose, onNavigate]);
+
+  return (
+    <div
+      className="fixed inset-0 z-[60] flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm sm:p-8"
+      onClick={onClose}
+    >
+      <button
+        onClick={onClose}
+        aria-label="Close"
+        className="absolute top-5 right-5 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20"
+      >
+        <X size={22} />
+      </button>
+
+      {images.length > 1 && (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigate((index - 1 + images.length) % images.length);
+            }}
+            aria-label="Previous screenshot"
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:left-6"
+          >
+            <ChevronLeft size={26} />
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onNavigate((index + 1) % images.length);
+            }}
+            aria-label="Next screenshot"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white transition-colors hover:bg-white/20 sm:right-6"
+          >
+            <ChevronRight size={26} />
+          </button>
+        </>
+      )}
+
+      <img
+        src={images[index]}
+        alt={`${alt} screenshot ${index + 1} of ${images.length}`}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-full max-w-full rounded-lg border border-[var(--border)] object-contain"
+      />
+
+      {images.length > 1 && (
+        <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+          {images.map((_, i) => (
+            <button
+              key={i}
+              onClick={(e) => {
+                e.stopPropagation();
+                onNavigate(i);
+              }}
+              aria-label={`Go to screenshot ${i + 1}`}
+              className={`h-2 w-2 rounded-full transition-colors ${i === index ? "bg-[var(--gold)]" : "bg-white/40 hover:bg-white/60"
+                }`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Portfolio() {
   const [lang, setLang] = useState<Lang>("en");
@@ -38,6 +248,7 @@ export default function Portfolio() {
   const [activeSection, setActiveSection] = useState<Section>("home");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const [lightbox, setLightbox] = useState<LightboxState | null>(null);
   const t = CONTENT[lang];
   const [typedLines, setTypedLines] = useState<string[]>(t.terminal.map(() => ""));
 
@@ -168,8 +379,8 @@ export default function Portfolio() {
           key={code}
           onClick={() => setLang(code)}
           className={`font-ui-mono text-xs px-2 py-1 rounded-md transition-all duration-200 ${lang === code
-              ? "bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/40"
-              : "text-[var(--muted)] border border-transparent hover:text-[var(--text)]"
+            ? "bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/40"
+            : "text-[var(--muted)] border border-transparent hover:text-[var(--text)]"
             }`}
         >
           {label}
@@ -193,8 +404,8 @@ export default function Portfolio() {
           aria-label={label}
           title={label}
           className={`p-1.5 rounded-md transition-all duration-200 ${themePref === pref
-              ? "bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/40"
-              : "text-[var(--muted)] border border-transparent hover:text-[var(--text)]"
+            ? "bg-[var(--gold)]/15 text-[var(--gold)] border border-[var(--gold)]/40"
+            : "text-[var(--muted)] border border-transparent hover:text-[var(--text)]"
             }`}
         >
           <Icon size={14} />
@@ -222,8 +433,8 @@ export default function Portfolio() {
             >
               <span
                 className={`w-2.5 h-2.5 rounded-full transition-all duration-300 ${activeSection === section
-                    ? "bg-[var(--gold)] pulse-dot"
-                    : "bg-[var(--border)] group-hover:bg-[var(--muted)]"
+                  ? "bg-[var(--gold)] pulse-dot"
+                  : "bg-[var(--border)] group-hover:bg-[var(--muted)]"
                   }`}
               />
               <span
@@ -263,8 +474,8 @@ export default function Portfolio() {
                   key={section}
                   onClick={() => scrollToSection(section)}
                   className={`font-ui-mono text-sm px-3 py-1.5 rounded-md transition-all duration-200 ${activeSection === section
-                      ? "text-[var(--gold)] bg-[var(--panel)]"
-                      : "text-[var(--muted)] hover:text-[var(--text)]"
+                    ? "text-[var(--gold)] bg-[var(--panel)]"
+                    : "text-[var(--muted)] hover:text-[var(--text)]"
                     }`}
                 >
                   {t.nav[section]}
@@ -602,32 +813,43 @@ export default function Portfolio() {
               <div
                 key={index}
                 data-reveal
-                className="group relative bg-[var(--panel)]/80 p-6 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                className="group relative bg-[var(--panel)]/80 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
               >
-                <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500" />
-                <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
-                <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
-                <div className="flex flex-wrap gap-2 mb-4">
-                  {project.tech.map((tech) => (
-                    <span
-                      key={tech}
-                      className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
-                    >
-                      {tech}
-                    </span>
-                  ))}
+                <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500 z-10" />
+                <ProjectCarousel
+                  images={PROJECT_IMAGES[project.slug] ?? []}
+                  alt={project.title}
+                  onOpen={(i) =>
+                    setLightbox({ images: PROJECT_IMAGES[project.slug] ?? [], index: i, alt: project.title })
+                  }
+                />
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
+                  <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
+                  <div className="flex flex-wrap gap-2">
+                    {project.tech.map((tech) => (
+                      <span
+                        key={tech}
+                        className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
+                      >
+                        {tech}
+                      </span>
+                    ))}
+                  </div>
                 </div>
-                <a
-                  href={project.link}
-                  className="inline-flex items-center gap-2 text-[var(--teal)] hover:text-[var(--gold)] transition-colors text-sm font-ui-mono"
-                >
-                  {t.viewProject} <ExternalLink size={14} />
-                </a>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      {lightbox && (
+        <Lightbox
+          state={lightbox}
+          onClose={() => setLightbox(null)}
+          onNavigate={(i) => setLightbox((prev) => (prev ? { ...prev, index: i } : prev))}
+        />
+      )}
 
       {/* Contact Section */}
       <section id="contact" className="py-20 px-4 sm:px-6 lg:px-8 relative">
