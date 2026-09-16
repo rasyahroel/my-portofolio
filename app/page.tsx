@@ -249,6 +249,9 @@ export default function Portfolio() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
   const [lightbox, setLightbox] = useState<LightboxState | null>(null);
+  const [activeCategory, setActiveCategory] = useState("all");
+  const PROJECTS_PAGE_SIZE = 4;
+  const [visibleProjectCount, setVisibleProjectCount] = useState(PROJECTS_PAGE_SIZE);
   const t = CONTENT[lang];
   const [typedLines, setTypedLines] = useState<string[]>(t.terminal.map(() => ""));
 
@@ -803,43 +806,87 @@ export default function Portfolio() {
       {/* Projects Section */}
       <section id="projects" className="py-20 px-4 sm:px-6 lg:px-8 relative">
         <div className="max-w-6xl mx-auto">
-          <div data-reveal className="mb-12 text-center">
+          <div data-reveal className="mb-8 text-center">
             <p className="font-ui-mono text-xs tracking-[0.2em] text-[var(--teal)] mb-2">{t.projects.eyebrow}</p>
             <h2 className="text-4xl font-bold">{t.projects.title}</h2>
           </div>
 
-          <div className="grid md:grid-cols-2 gap-6">
-            {t.projects.items.map((project, index) => (
-              <div
-                key={index}
-                data-reveal
-                className="group relative bg-[var(--panel)]/80 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+          <div data-reveal className="flex flex-wrap justify-center gap-2 mb-10">
+            {[{ slug: "all", label: t.projects.allLabel }, ...t.projects.categories].map((cat) => (
+              <button
+                key={cat.slug}
+                onClick={() => {
+                  setActiveCategory(cat.slug);
+                  setVisibleProjectCount(PROJECTS_PAGE_SIZE);
+                }}
+                className={`font-ui-mono text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 ${activeCategory === cat.slug
+                    ? "bg-[var(--gold)]/15 text-[var(--gold)] border-[var(--gold)]/40"
+                    : "text-[var(--muted)] border-[var(--border)] hover:text-[var(--text)] hover:border-[var(--muted)]"
+                  }`}
               >
-                <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500 z-10" />
-                <ProjectCarousel
-                  images={PROJECT_IMAGES[project.slug] ?? []}
-                  alt={project.title}
-                  onOpen={(i) =>
-                    setLightbox({ images: PROJECT_IMAGES[project.slug] ?? [], index: i, alt: project.title })
-                  }
-                />
-                <div className="p-6">
-                  <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
-                  <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
-                  <div className="flex flex-wrap gap-2">
-                    {project.tech.map((tech) => (
-                      <span
-                        key={tech}
-                        className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
-                      >
-                        {tech}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              </div>
+                {cat.label}
+              </button>
             ))}
           </div>
+
+          {(() => {
+            const filtered =
+              activeCategory === "all"
+                ? t.projects.items
+                : t.projects.items.filter((p) => p.category === activeCategory);
+            const visible = filtered.slice(0, visibleProjectCount);
+            const hasMore = visibleProjectCount < filtered.length;
+            const isExpanded = visibleProjectCount >= filtered.length && filtered.length > PROJECTS_PAGE_SIZE;
+
+            return (
+              <>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {visible.map((project) => (
+                    <div
+                      key={project.slug}
+                      className="group relative bg-[var(--panel)]/80 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                    >
+                      <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500 z-10" />
+                      <ProjectCarousel
+                        images={PROJECT_IMAGES[project.slug] ?? []}
+                        alt={project.title}
+                        onOpen={(i) =>
+                          setLightbox({ images: PROJECT_IMAGES[project.slug] ?? [], index: i, alt: project.title })
+                        }
+                      />
+                      <div className="p-6">
+                        <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
+                        <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {project.tech.map((tech) => (
+                            <span
+                              key={tech}
+                              className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
+                            >
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {(hasMore || isExpanded) && (
+                  <div className="flex justify-center mt-10">
+                    <button
+                      onClick={() =>
+                        setVisibleProjectCount(hasMore ? filtered.length : PROJECTS_PAGE_SIZE)
+                      }
+                      className="font-ui-mono text-sm px-5 py-2.5 rounded-lg border border-[var(--border)] bg-[var(--panel)] text-[var(--muted)] hover:text-[var(--gold)] hover:border-[var(--gold)]/40 transition-all duration-200"
+                    >
+                      {hasMore ? t.projects.showMore : t.projects.showLess}
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
         </div>
       </section>
 

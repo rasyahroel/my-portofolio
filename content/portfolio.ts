@@ -109,6 +109,7 @@ export interface ExperienceItem {
 
 export interface ProjectItem {
     slug: string; // stable id shared across all 3 languages — used to look up PROJECT_IMAGES below. Do not translate.
+    category: string; // one of the slugs from projects.categories below — same value across all 3 languages, do not translate
     title: string; // translate if you like (or keep as project code-name)
     tech: string[]; // usually kept identical across languages (tech names)
     description: string;
@@ -163,6 +164,14 @@ export interface LangContent {
     projects: {
         eyebrow: string;
         title: string;
+        // Filter tabs shown above the project grid. "all" is added
+        // automatically by the page — list only the real categories here.
+        // Each project's `category` field (above) must match one of these
+        // slugs exactly.
+        categories: { slug: string; label: string }[];
+        allLabel: string; // label for the "show everything" tab, e.g. "All"
+        showMore: string; // e.g. "Show more"
+        showLess: string; // e.g. "Show less"
         items: ProjectItem[]; // must have the same NUMBER of items in every language
     };
 
@@ -317,27 +326,39 @@ export const CONTENT: Record<Lang, LangContent> = {
         projects: {
             eyebrow: "$ ls -la projects/",
             title: "Proyek",
+            categories: [
+                { slug: "banking", label: "Core Banking" },
+                { slug: "bootcamp", label: "Bootcamp" },
+                { slug: "academic", label: "Akademik" },
+            ],
+            allLabel: "Semua",
+            showMore: "Tampilkan lebih banyak",
+            showLess: "Tampilkan lebih sedikit",
             items: [
                 {
                     slug: "core-banking-integration",
+                    category: "banking",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "Integrasi sistem core banking menggunakan Axway untuk mendukung operasional perbankan",
                 },
                 {
                     slug: "internal-banking-application",
+                    category: "banking",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "Aplikasi web internal untuk pengelolaan data dan proses bisnis perbankan",
                 },
                 {
                     slug: "hotel-management-system",
+                    category: "bootcamp",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "Sistem manajemen hotel lengkap dengan booking dan inventory management",
                 },
                 {
                     slug: "web-clustering-sma",
+                    category: "academic",
                     title: "Web Clustering Siswa SMA",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "Tugas akhir: Web clustering untuk mengelompokkan siswa SMA di Kota Padang",
@@ -493,27 +514,39 @@ export const CONTENT: Record<Lang, LangContent> = {
         projects: {
             eyebrow: "$ ls -la projects/",
             title: "Projects",
+            categories: [
+                { slug: "banking", label: "Core Banking" },
+                { slug: "bootcamp", label: "Bootcamp" },
+                { slug: "academic", label: "Academic" },
+            ],
+            allLabel: "All",
+            showMore: "Show more",
+            showLess: "Show less",
             items: [
                 {
                     slug: "core-banking-integration",
+                    category: "banking",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "Core banking system integration using Axway to support banking operations",
                 },
                 {
                     slug: "internal-banking-application",
+                    category: "banking",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "Internal web application for managing banking data and business processes",
                 },
                 {
                     slug: "hotel-management-system",
+                    category: "bootcamp",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "Complete hotel management system with booking and inventory management",
                 },
                 {
                     slug: "web-clustering-sma",
+                    category: "academic",
                     title: "High School Student Web Clustering",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "Final project: web clustering to group high school students in Padang City",
@@ -663,27 +696,39 @@ export const CONTENT: Record<Lang, LangContent> = {
         projects: {
             eyebrow: "$ ls -la projects/",
             title: "项目",
+            categories: [
+                { slug: "banking", label: "核心银行" },
+                { slug: "bootcamp", label: "训练营项目" },
+                { slug: "academic", label: "学术项目" },
+            ],
+            allLabel: "全部",
+            showMore: "显示更多",
+            showLess: "收起",
             items: [
                 {
                     slug: "core-banking-integration",
+                    category: "banking",
                     title: "Core Banking Integration",
                     tech: ["Axway", "PostgreSQL", "REST API"],
                     description: "使用 Axway 集成核心银行系统,支持银行业务运营",
                 },
                 {
                     slug: "internal-banking-application",
+                    category: "banking",
                     title: "Internal Banking Application",
                     tech: ["Laravel", "FilamentPHP", "PostgreSQL", "Tailwind"],
                     description: "用于管理银行数据与业务流程的内部 Web 应用",
                 },
                 {
                     slug: "hotel-management-system",
+                    category: "bootcamp",
                     title: "Hotel Management System",
                     tech: ["NestJS", "ReactJS", "PostgreSQL", "TypeScript"],
                     description: "包含预订与库存管理功能的完整酒店管理系统",
                 },
                 {
                     slug: "web-clustering-sma",
+                    category: "academic",
                     title: "高中生网页聚类系统",
                     tech: ["PHP", "MySQL", "Bootstrap"],
                     description: "毕业设计:用于对巴东市高中生进行分组的网页聚类系统",
