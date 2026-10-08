@@ -20,8 +20,9 @@ import {
   Sun,
   Moon,
   Monitor,
+  ExternalLink,
 } from "lucide-react";
-import { LANGS, PROFILE, SKILLS, CONTENT, PROJECT_IMAGES, type Lang } from "../content/portfolio";
+import { LANGS, PROFILE, SKILLS, CONTENT, PROJECT_IMAGES, PROJECT_LINKS, type Lang } from "../content/portfolio";
 
 type Section = "home" | "about" | "experience" | "projects" | "contact";
 type ThemePref = "light" | "dark" | "system";
@@ -576,7 +577,7 @@ export default function Portfolio() {
 
           <div data-reveal className="mt-4 flex justify-center">
             <a
-              href="/ramanda-syahputra-cv.pdf"
+              href="/Ramanda-Syahputra-Fullstack-Developer.pdf"
               download
               className="flex items-center gap-2 px-5 py-2.5 rounded-lg border border-[var(--gold)]/40 bg-[var(--gold)]/10 text-[var(--gold)] hover:bg-[var(--gold)]/20 transition-all duration-200 hover:-translate-y-0.5 font-ui-mono text-sm"
             >
@@ -820,8 +821,8 @@ export default function Portfolio() {
                   setVisibleProjectCount(PROJECTS_PAGE_SIZE);
                 }}
                 className={`font-ui-mono text-xs px-3.5 py-1.5 rounded-full border transition-all duration-200 ${activeCategory === cat.slug
-                    ? "bg-[var(--gold)]/15 text-[var(--gold)] border-[var(--gold)]/40"
-                    : "text-[var(--muted)] border-[var(--border)] hover:text-[var(--text)] hover:border-[var(--muted)]"
+                  ? "bg-[var(--gold)]/15 text-[var(--gold)] border-[var(--gold)]/40"
+                  : "text-[var(--muted)] border-[var(--border)] hover:text-[var(--text)] hover:border-[var(--muted)]"
                   }`}
               >
                 {cat.label}
@@ -840,36 +841,84 @@ export default function Portfolio() {
 
             return (
               <>
+                {/* Even grid: every card has a screenshot area (placeholder or real), and cards in a
+                    row stretch to the same height, with tech chips pinned to the bottom. */}
                 <div className="grid md:grid-cols-2 gap-6">
-                  {visible.map((project) => (
-                    <div
-                      key={project.slug}
-                      className="group relative bg-[var(--panel)]/80 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                    >
-                      <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500 z-10" />
-                      <ProjectCarousel
-                        images={PROJECT_IMAGES[project.slug] ?? []}
-                        alt={project.title}
-                        onOpen={(i) =>
-                          setLightbox({ images: PROJECT_IMAGES[project.slug] ?? [], index: i, alt: project.title })
-                        }
-                      />
-                      <div className="p-6">
-                        <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
-                        <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
-                        <div className="flex flex-wrap gap-2">
-                          {project.tech.map((tech) => (
-                            <span
-                              key={tech}
-                              className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
-                            >
-                              {tech}
-                            </span>
-                          ))}
+                  {visible.map((project) => {
+                    const hasImages = (PROJECT_IMAGES[project.slug] ?? []).length > 0;
+                    const catLabel = t.projects.categories.find((c) => c.slug === project.category)?.label;
+                    const links = PROJECT_LINKS[project.slug];
+                    return (
+                      <div
+                        key={project.slug}
+                        className="group relative flex flex-col bg-[var(--panel)]/80 rounded-xl border border-[var(--border)] hover:border-[var(--teal)]/40 transition-all duration-300 hover:-translate-y-1 overflow-hidden"
+                      >
+                        <div className="absolute top-0 left-0 h-0.5 w-0 bg-gradient-to-r from-[var(--gold)] to-[var(--teal)] group-hover:w-full transition-all duration-500 z-10" />
+                        {!hasImages && (
+                          <div className="flex items-center justify-between gap-3 px-4 py-2 border-b border-[var(--border)] bg-[var(--panel-2)] font-ui-mono text-[11px] text-[var(--muted)]">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="h-2 w-2 rounded-full bg-[var(--muted)]/40" />
+                              <span className="h-2 w-2 rounded-full bg-[var(--muted)]/40" />
+                              <span className="h-2 w-2 rounded-full bg-[var(--muted)]/40" />
+                              <span className="ml-2 truncate">~/projects/{project.slug}</span>
+                            </div>
+                            {catLabel && (
+                              <span className={project.category === "upcoming" ? "shrink-0 text-[var(--gold)]" : "shrink-0 text-[var(--teal)]"}>
+                                {catLabel}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                        <ProjectCarousel
+                          images={PROJECT_IMAGES[project.slug] ?? []}
+                          alt={project.title}
+                          onOpen={(i) =>
+                            setLightbox({ images: PROJECT_IMAGES[project.slug] ?? [], index: i, alt: project.title })
+                          }
+                        />
+                        <div className="p-6 flex flex-1 flex-col">
+                          <h3 className="text-lg font-semibold mb-2 text-[var(--gold)]">{project.title}</h3>
+                          <p className="text-[var(--text)]/80 text-sm mb-4">{project.description}</p>
+                          <div className="flex flex-wrap gap-2 mt-auto">
+                            {project.tech.map((tech) => (
+                              <span
+                                key={tech}
+                                className="px-2.5 py-1 bg-[var(--panel-2)] border border-[var(--border)] text-[var(--text)]/80 rounded-full text-xs font-ui-mono"
+                              >
+                                {tech}
+                              </span>
+                            ))}
+                          </div>
+                          {(links?.github || links?.url) && (
+                            <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-[var(--border)] font-ui-mono text-xs">
+                              {links.github && (
+                                <a
+                                  href={links.github}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`${project.title} on GitHub`}
+                                  className="inline-flex items-center gap-1.5 text-[var(--muted)] hover:text-[var(--gold)] transition-colors"
+                                >
+                                  <Github size={14} /> GitHub
+                                </a>
+                              )}
+                              {links.url && (
+                                <a
+                                  href={links.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  aria-label={`${project.title} live site`}
+                                  className="inline-flex items-center gap-1.5 text-[var(--muted)] hover:text-[var(--teal)] transition-colors"
+                                >
+                                  <ExternalLink size={14} /> Live
+                                </a>
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {(hasMore || isExpanded) && (

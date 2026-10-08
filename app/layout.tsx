@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: 'Ramanda Syahputra | IT Developer & Fullstack Developer',
   description:
-    'Fullstack Developer with 2+ years of experience in core banking integration, internal enterprise applications, and modern web development using Laravel, FilamentPHP, React.js, and Next.js. Based in Jakarta, Indonesia.',
+    'Fullstack Developer with 3 years of experience in core banking integration, internal enterprise applications, and modern web development using Laravel, FilamentPHP, React.js, and Next.js. Based in Jakarta, Indonesia.',
   keywords: [
     'Ramanda Syahputra',
     'Fullstack Developer',
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Ramanda Syahputra | IT Developer & Fullstack Developer',
     description:
-      'Fullstack Developer with 2+ years of experience in core banking integration, internal enterprise applications, and modern web development using Laravel, FilamentPHP, React.js, and Next.js.',
+      'Fullstack Developer with 3 years of experience in core banking integration, internal enterprise applications, and modern web development using Laravel, FilamentPHP, React.js, and Next.js.',
     url: SITE_URL,
     siteName: 'Ramanda Syahputra Portfolio',
     // No "images" here on purpose — app/opengraph-image.tsx generates the
@@ -43,7 +43,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Ramanda Syahputra | IT Developer & Fullstack Developer',
     description:
-      'Fullstack Developer with 2+ years of experience in core banking integration and modern web development using Laravel, FilamentPHP, React.js, and Next.js.',
+      'Fullstack Developer with 3 years of experience in core banking integration and modern web development using Laravel, FilamentPHP, React.js, and Next.js.',
   },
 }
 
